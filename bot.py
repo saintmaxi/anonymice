@@ -27,7 +27,7 @@ stop_words.update(['tbh', 'eth', 'keep', 'telling', 'tbh', 'give', 'lot', 'like'
 async def on_ready():
     channel = client.get_channel(CHANNEL)
     
-    # If we ran before we can get the last message we saw and read after that
+    # If we ran before we can get the time of last message we saw and read after that
     # This part isn't working right now. Not sure why.
     # Works on my personal server but not Mice for some reason
     # Relevant docs: https://discordpy.readthedocs.io/en/stable/api.html#messageable
@@ -51,8 +51,8 @@ async def on_ready():
     message_contents = [message.content for message in messages]
     process_messages(message_contents)
 
-    # Save last ran time object
-    last_ran = datetime.utcnow()
+    # Save time of latest message read
+    last_ran = messages[-1].created_at
     with open(LAST_RAN_FILENAME, 'wb') as outfile:
         pickle.dump(last_ran, outfile)
 
