@@ -16,7 +16,7 @@ client = discord.Client()
 # CHANNEL = 899799560317198350    # personal server
 CHANNEL = 892274233198129202     # mice-alpha
 # CHANNEL = 888113560666927147  # general
-LAST_RAN_FILENAME = 'last_message.txt'
+LAST_RAN_FILENAME = 'last_ran.txt'
 
 # words to filter out (added a bunch of random ones that seemed unimportant, can add more based on results)
 stop_words = set(stopwords.words('english'))
@@ -28,30 +28,33 @@ async def on_ready():
     channel = client.get_channel(CHANNEL)
     
     # If we ran before we can get the last message we saw and read after that
-    # This part isn't working right now. Have tried both times and now Message objects.
+    # This part isn't working right now. Not sure why.
     # Works on my personal server but not Mice for some reason
     # Relevant docs: https://discordpy.readthedocs.io/en/stable/api.html#messageable
     try:
         limit = None
         with open(LAST_RAN_FILENAME, 'rb') as infile:
-            lastMSG = pickle.load(infile)
+            last_ran = pickle.load(infile)
     # If we did not run before then just get last N messages
     except:
         limit = 4000
-        lastMSG = None
+        last_ran = None
 
     # Getting messages
-    messages = await channel.history(limit=limit, oldest_first=False, after=lastMSG).flatten()
+    messages = await channel.history(limit=limit, oldest_first=False, after=last_ran).flatten()
+
+    if not limit:
+        limit = len(messages)
     print(f'Data from latest {limit} messages. All times local.\nOldest: {utc2local(messages[-1].created_at)}, Newest: {utc2local(messages[0].created_at)}')
 
     # Isolating actual message content
     message_contents = [message.content for message in messages]
     process_messages(message_contents)
 
-    # Save last message from list
-    lastMSG = messages[-1]
+    # Save last ran time object
+    last_ran = datetime.utcnow()
     with open(LAST_RAN_FILENAME, 'wb') as outfile:
-        pickle.dump(lastMSG, outfile)
+        pickle.dump(last_ran, outfile)
 
     print('Closing...')
     await client.close()
@@ -70,7 +73,7 @@ def process_messages(messages):
     # Getting word frequency of top N words
     dist = FreqDist(lemmas)
     top_n_single = 100
-    print('TOP INDIVIDUAL WORD')
+    print('TOP INDIVIDUAL WORDS')
     for mc in dist.most_common(top_n_single):
         print(mc)
 
