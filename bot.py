@@ -52,7 +52,7 @@ async def on_ready():
     process_messages(message_contents)
 
     # Save time of latest message read
-    last_ran = messages[-1].created_at
+    last_ran = messages[0].created_at
     with open(LAST_RAN_FILENAME, 'wb') as outfile:
         pickle.dump(last_ran, outfile)
 
